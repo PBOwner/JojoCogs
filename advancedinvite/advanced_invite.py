@@ -186,7 +186,7 @@ class AdvancedInvite(commands.Cog):
 
         You can set the title, message, support server invite.
 
-        If you have embeds enabled you can also set the thumbnail url, and the footer.
+        If you have embeds enabled you can also set the thumbnail url, footer, extra link, and custom field names.
         """
         pass
 
@@ -318,6 +318,55 @@ class AdvancedInvite(commands.Cog):
             return await ctx.send("I have reset the invite emoji.")
         await self.config.invite_emoji.set(emoji.to_dict())
         await ctx.send(f"Set the invite emoji to {emoji.as_emoji()}")
+
+    @invite_settings.command(name="extralinkurl")
+    async def invite_extra_link_url(self, ctx: commands.Context, url: str = None):
+        """Set the URL for the extra link in the invite command's embed
+
+        **Arguments**
+            - `url` The URL for the extra link. Type `none` to clear it.
+        """
+        if url is not None and url.lower() == "none":
+            await self.config.extra_link_url.clear()
+            return await ctx.send("The extra link URL has been cleared.")
+        await self.config.extra_link_url.set(url)
+        await ctx.send("The extra link URL has been set.")
+
+    @invite_settings.command(name="extralinkname")
+    async def invite_extra_link_name(self, ctx: commands.Context, *, name: str):
+        """Set the field name for the extra link in the invite command's embed
+
+        **Arguments**
+            - `name` The field name for the extra link.
+        """
+        await self.config.extra_link_name.set(name)
+        await ctx.send("The extra link field name has been set.")
+
+    @invite_settings.command(name="customfield")
+    async def invite_custom_field(self, ctx: commands.Context, field_name: str, *, field_value: str):
+        """Add a custom field to the invite command's embed
+
+        **Arguments**
+            - `field_name` The name of the custom field.
+            - `field_value` The value of the custom field.
+        """
+        async with self.config.custom_field_names() as custom_field_names:
+            custom_field_names[field_name] = field_value
+        await ctx.send(f"Custom field '{field_name}' has been set.")
+
+    @invite_settings.command(name="removecustomfield")
+    async def invite_remove_custom_field(self, ctx: commands.Context, *, field_name: str):
+        """Remove a custom field from the invite command's embed
+
+        **Arguments**
+            - `field_name` The name of the custom field to remove.
+        """
+        async with self.config.custom_field_names() as custom_field_names:
+            if field_name in custom_field_names:
+                del custom_field_names[field_name]
+                await ctx.send(f"Custom field '{field_name}' has been removed.")
+            else:
+                await ctx.send(f"Custom field '{field_name}' does not exist.")
 
     @invite_settings.command(name="thumbnailurl")
     async def invite_custom_url(self, ctx: commands.Context, url: str = None):
